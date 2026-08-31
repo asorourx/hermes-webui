@@ -2284,8 +2284,10 @@
   .messages.session-nav-enabled .scroll-to-bottom-btn:hover{transform:translateY(-1px);}
   .messages.session-nav-enabled .session-jump-btn__text{display:inline;}
   .messages-inner{margin:0 auto;width:100%;padding:20px 24px 32px;display:flex;flex-direction:column;}
-  @media(min-width:1400px){.messages-inner{max-width:1100px;}}
-  @media(min-width:1800px){.messages-inner{max-width:1200px;}}
+  /* .messages-inner max-width authority lives in ONE place — the "Widths:
+     messages-inner" section far below. These early max-width overrides were dead
+     (a later equal-specificity rule won by source order) and advertised a width the
+     column never reached, so they are removed to leave a single auditable authority. */
   .msg-row{padding:10px 0;}
   .msg-row+.msg-row{border-top:none;}
   /* Steer indicator: transient banner below messages, removed on renderMessages rebuild */
@@ -6420,10 +6422,22 @@ body code[class*="language-"],body pre[class*="language-"],body pre code[class*=
 }
 .msg-date-sep::before, .msg-date-sep::after { content: ''; flex: 1; height: 1px; background: var(--border); }
 
-/* ── Widths: collapse messages-inner to match content column ── */
+/* ── Widths: messages-inner — the single authority for the transcript column ──
+   Prose-only transcripts keep the reading measure (--msg-max = 780px, +40/+80px on
+   wider viewports). A transcript that carries a table or code block widens the WHOLE
+   inner column to min(1100px,100%): the child `.msg-body:has(table|pre|.csv-table-wrap)`
+   cap of 1100px is useless while the parent stays at 780px, which was the review's
+   point. `.messages-inner:has(...)` has specificity (0,2,0), so it is the final winner
+   over every plain `.messages-inner { max-width }` rule regardless of source order —
+   and it is the only `.messages-inner` width rule that can widen the column now that
+   the early 1100/1200 block is gone. On narrow viewports min(1100px,100%) resolves to
+   100%, so the mobile full-bleed rule below is preserved unchanged. */
 .messages-inner { max-width: var(--msg-max); }
 @media (min-width: 1400px) { .messages-inner { max-width: calc(var(--msg-max) + 40px); } }
 @media (min-width: 1800px) { .messages-inner { max-width: calc(var(--msg-max) + 80px); } }
+.messages-inner:has(.msg-body table),
+.messages-inner:has(.msg-body pre),
+.messages-inner:has(.csv-table-wrap) { max-width: min(1100px, 100%); }
 
 @media (max-width: 700px) {
   .msg-role { margin-bottom: 4px; }
